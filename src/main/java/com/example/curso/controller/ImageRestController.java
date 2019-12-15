@@ -1,5 +1,7 @@
 package com.example.curso.controller;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.io.ClassPathResource;

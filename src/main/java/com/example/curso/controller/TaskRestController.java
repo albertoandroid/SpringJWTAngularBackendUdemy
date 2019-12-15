@@ -1,10 +1,12 @@
 package com.example.curso.controller;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.curso.entity.Task;
 import com.example.curso.model.JwtUser;
@@ -23,6 +27,8 @@ import com.example.curso.service.ITaskService;
 @RestController
 @RequestMapping("/api")
 public class TaskRestController {
+	
+	public static final String UPLOAD_DIRECTORY = System.getProperty("user.dir")+"/src/main/resources/";
 	
 	@Autowired
 	private ITaskService taskService;
@@ -68,6 +74,23 @@ public class TaskRestController {
 	public ResponseEntity<Void> deleteTask(@PathVariable(value="id")Long id){
 		taskService.deleteTask(id);
 		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+	
+	@PostMapping("/task/upload")
+	public ResponseEntity<?> createTaskImage(@RequestParam("image") MultipartFile file,
+			@RequestParam("name") String name, @RequestParam("description") String description,
+			@RequestHeader(name="Authorization") String bearerToken){
+		Task task = new Task();
+		String token = bearerToken.substring(7);
+		JwtUser jwtUser = validator.validate(token);
+		task.setUserId(Long.valueOf(jwtUser.getId()));
+		task.setStatus("to-do");
+		task.setName(name);
+		task.setDescription(description);
+		
+		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+		Path path = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
+				
 	}
 	
 	

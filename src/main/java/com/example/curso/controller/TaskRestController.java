@@ -1,6 +1,10 @@
 package com.example.curso.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.curso.entity.Task;
 import com.example.curso.model.JwtUser;
@@ -89,8 +94,20 @@ public class TaskRestController {
 		task.setDescription(description);
 		
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-		Path path = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
-				
+		Path path = Paths.get(UPLOAD_DIRECTORY, fileName);
+		
+		try {
+			Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
+		String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+				.path("/download/")
+				.path(fileName)
+				.toUriString();
+		task.setImageUrl(fileDownloadUri);
+		taskService.saveTask(task);
+		return new ResponseEntity<Void>(HttpStatus.CREATED);		
 	}
 	
 	
